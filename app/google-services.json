@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "576789555692",
+    "project_id": "sweethome-project-mm2",
+    "storage_bucket": "sweethome-project-mm2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576789555692:android:ff216996ff59980de2b8c9",
+        "android_client_info": {
+          "package_name": "com.mm2_2023.sweethome"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "576789555692-fihgj45sjuk459hehj6hg8dk6g8qp2fb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCAz2l2YAa-2FnV5G-T-h372y2yCDAK7oo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "576789555692-fihgj45sjuk459hehj6hg8dk6g8qp2fb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
