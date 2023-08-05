@@ -1,58 +1,71 @@
-package com.mm2_2023.sweethome.view
-
+import android.content.Intent
 import android.os.Bundle
-import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat.startActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
+import androidx.navigation.findNavController
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
-import com.mm2_2023.sweethome.adapter.ImageAdapter
+import androidx.room.Room
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.mm2_2023.sweethome.InputDataViewModel
 import com.mm2_2023.sweethome.R
 import com.mm2_2023.sweethome.adapter.RecyclerViewAdapter
-import com.mm2_2023.sweethome.database.HotelApiService
-import com.mm2_2023.sweethome.model.Hotel
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.ArrayList
+import com.mm2_2023.sweethome.database.AppDatabase
+import com.mm2_2023.sweethome.model.ModelDatabase
+import com.mm2_2023.sweethome.view.HistoryActivity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewPager2: ViewPager2
-    private lateinit var handler: android.os.Handler
+
+    // Deklarasi variabel
     private lateinit var imageList: ArrayList<Int>
-    private lateinit var imageAdapter: ImageAdapter
-
-    private var hotelList: List<Hotel> = ArrayList()
-
+    private var hotelList: List<ModelDatabase> = emptyList()
     private var recyclerView: RecyclerView? = null
-    private val al_image_hotel = ArrayList<Int>()
-    private val al_name_hotel = ArrayList<String>()
-    private val al_desc_hotel = ArrayList<String>()
-    private val al_price_hotel = ArrayList<Int>()
-    private val al_location = ArrayList<String>()
+    private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Memulai inisialisasi data untuk daftar gambar
         initializeData()
-        setupViewPager()
+
+        // Menyiapkan RecyclerView dan memuat data dari database
         setupRecyclerView()
 
-        // Create a Handler instance associated with the main thread's looper
-        handler = android.os.Handler(Looper.getMainLooper())
+        // Mencari NavController yang terkait dengan BottomNavigationView
+        navController = findNavController(R.id.bottomNav)
+        val bottomNav: BottomNavigationView = findViewById(R.id.bottomNav)
 
-        viewPager2.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-            override fun onPageSelected(position: Int) {
-                super.onPageSelected(position)
-                handler.removeCallbacks(runnable)
-                handler.postDelayed(runnable, 2000)
+        // Menyambungkan BottomNavigationView dengan NavController untuk navigasi
+        bottomNav.setupWithNavController(navController)
+
+        // Menetapkan pendengar klik item untuk BottomNavigationView
+        bottomNav.setOnNavigationItemSelectedListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.bottom_home -> {
+                    // Mengatasi klik item Home (berpindah ke HomeActivity)
+                    startActivity(Intent(this, MainActivity::class.java))
+                    true
+                }
+                R.id.bottom_book -> {
+                    // Mengatasi klik item Dashboard (berpindah ke HistoryActivity)
+                    startActivity(Intent(this, HistoryActivity::class.java))
+                    true
+                }
+                else -> false
             }
-        })
+        }
     }
 
+    // Fungsi untuk menginisialisasi imageList dengan beberapa data
     private fun initializeData() {
         imageList = ArrayList()
         imageList.add(R.drawable.banner1)
@@ -60,97 +73,61 @@ class MainActivity : AppCompatActivity() {
         imageList.add(R.drawable.banner3)
     }
 
-    private fun setupViewPager() {
-        viewPager2 = findViewById(R.id.viewPager2)
-        handler = android.os.Handler(Looper.myLooper()!!)
-        imageAdapter = ImageAdapter(imageList)
-        viewPager2.adapter = imageAdapter
-        viewPager2.offscreenPageLimit = 3
-        viewPager2.clipToPadding = false
-        viewPager2.clipChildren = false
-        viewPager2.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
-
-        imageAdapter = ImageAdapter(imageList, viewPager2)
-    }
-/*
-    private fun loadHotelData() {
-        al_image_hotel.add(R.drawable.banner1)
-        al_image_hotel.add(R.drawable.img2)
-        al_image_hotel.add(R.drawable.img1)
-
-        al_name_hotel.add("Hotel A")
-        al_name_hotel.add("Hotel B")
-        al_name_hotel.add("Hotel C")
-
-        al_desc_hotel.add("Description of Hotel A")
-        al_desc_hotel.add("Description of Hotel B")
-        al_desc_hotel.add("Description of Hotel C")
-
-        al_price_hotel.add(100)
-        al_price_hotel.add(150)
-        al_price_hotel.add(200)
-
-        al_location.add("City X")
-        al_location.add("City Y")
-        al_location.add("City Z")
-    }*/
-
+    // Fungsi untuk menyiapkan RecyclerView dan memuat data dari database
     private fun setupRecyclerView() {
-        // Call loadHotelDataFromAPI() to fetch hotel data from the API
-        loadHotelDataFromAPI()
+        // Panggil loadModelDatabaseFromDatabase() untuk mengambil data hotel dari database
+        loadModelDatabaseFromDatabase()
 
         recyclerView = findViewById(R.id.recyclerView)
-        val recyclerViewAdapter = RecyclerViewAdapter(emptyList(), this)
+        val recyclerViewAdapter = RecyclerViewAdapter()
         recyclerView?.adapter = recyclerViewAdapter
         recyclerView?.layoutManager = LinearLayoutManager(this)
+
+        // Buat instance dari InputDataViewModel untuk berinteraksi dengan database
+        val inputDataViewModel = InputDataViewModel(application) // Gunakan "this.application" jika Anda berada dalam sebuah Activity
+
+        // Panggil fungsi addDataPemesan dengan parameter yang diperlukan untuk memasukkan data ke dalam database
+        inputDataViewModel.addDataPemesan(
+            nama_tamu = "John Doe",
+            check_in = "2023-08-10",
+            check_out = "2023-08-15",
+            nomor_telepon = "123456789",
+            anak_anak = 2,
+            dewasa = 2,
+            harga_hotel = 500,
+            kelas = "Deluxe",
+            status = "Booked",
+            name = "Hotel Santika",
+            description = "Hotel ini bagus",
+            location = "Semarang"
+        )
     }
 
-    private val runnable = Runnable {
-        viewPager2.currentItem = viewPager2.currentItem + 1
+    // Objek migrasi untuk menangani perubahan skema database
+    val migration1To2 = object : Migration(1, 2) {
+        override fun migrate(database: SupportSQLiteDatabase) {
+            // Tambahkan kode migrasi di sini jika ada perubahan skema
+        }
     }
 
-    override fun onPause() {
-        super.onPause()
-        handler.removeCallbacks(runnable)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        handler.postDelayed(runnable, 3000)
-    }
-
-    private fun loadHotelDataFromAPI() {
-        // Create a Retrofit instance with the base URL of your API
-        val retrofit = Retrofit.Builder()
-            .baseUrl("https://travel-advisor.p.rapidapi.com/locations/v2/auto-complete?query=eiffel%20tower&lang=en_US&units=km") // Replace with your actual API base URL
-            .addConverterFactory(GsonConverterFactory.create())
+    // Fungsi untuk mengambil data dari database menggunakan Room database dan memperbarui RecyclerView
+    private fun loadModelDatabaseFromDatabase() {
+        val database = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            AppDatabase.DATABASE_NAME
+        ).addMigrations(migration1To2) // Tambahkan migrasi di sini
+            .fallbackToDestructiveMigration()
             .build()
 
-        // Create the API service using the Retrofit instance
-        val apiService = retrofit.create(HotelApiService::class.java)
+        lifecycleScope.launch(Dispatchers.IO) {
+            hotelList = database.databaseDao()!!.getAllData()
 
-        // Make the API call to fetch the list of hotels
-        val call: Call<List<Hotel>> = apiService.getHotels()
+            withContext(Dispatchers.Main) {
+                val recyclerViewAdapter = recyclerView?.adapter as RecyclerViewAdapter
+                recyclerViewAdapter.updateData(hotelList)
 
-        call.enqueue(object : Callback<List<Hotel>> {
-            override fun onResponse(call: Call<List<Hotel>>, response: Response<List<Hotel>>) {
-                if (response.isSuccessful) {
-                    // The API call was successful, get the list of hotels from the response
-                    hotelList = response.body() ?: emptyList()
-
-                    // Update the RecyclerView adapter with the fetched data
-                    val recyclerViewAdapter = recyclerView.adapter as RecyclerViewAdapter
-                    recyclerViewAdapter.updateData(hotelList)
-                } else {
-                    // Handle error response
-                }
             }
-
-            override fun onFailure(call: Call<List<Hotel>>, t: Throwable) {
-                // Handle network failure
-            }
-        })
+        }
     }
-
-
 }

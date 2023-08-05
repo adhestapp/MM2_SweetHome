@@ -1,50 +1,49 @@
 package com.mm2_2023.sweethome.adapter
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.mm2_2023.sweethome.R
-import com.mm2_2023.sweethome.model.Hotel
+import com.mm2_2023.sweethome.model.ModelDatabase
 
-class RecyclerViewAdapter(private val context: Context) :
-    RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
+class RecyclerViewAdapter : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>()  {
 
-    private var hotelList: List<Hotel> = emptyList()
+    private var data: List<ModelDatabase> = emptyList()
 
-    // Method to update the RecyclerView data
-    fun updateData(newHotelList: List<Hotel>) {
-        hotelList = newHotelList
-        notifyDataSetChanged()
-    }
-
+    // Fungsi untuk membuat tampilan (ViewHolder) untuk setiap item dalam RecyclerView
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view =
-            LayoutInflater.from(context).inflate(R.layout.design_dashboard_adapter, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item_history, parent, false)
         return ViewHolder(view)
     }
 
+    // Fungsi untuk menghubungkan data dari ModelDatabase ke ViewHolder
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val hotel = hotelList[position]
-
-        holder.hotelName.text = hotel.name
-        holder.hotelPrice.text = hotel.price.toString()
-
-        // Set the hotel image using Glide or any other image loading library
-        // For example, if you are using Glide:
-        // Glide.with(context).load(hotel.imageUrl).into(holder.hotelImage)
+        val hotel = data[position]
+        holder.bind(hotel)
     }
 
+    // Fungsi untuk mendapatkan jumlah item dalam RecyclerView
     override fun getItemCount(): Int {
-        return hotelList.size
+        return data.size
     }
 
+    // Fungsi untuk mengupdate data pada RecyclerView
+    fun updateData(newData: List<ModelDatabase>) {
+        data = newData
+        notifyDataSetChanged()
+    }
+
+    // Kelas ViewHolder untuk menyimpan referensi tampilan item dalam RecyclerView
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val hotelName: TextView = itemView.findViewById(R.id.name_hotel)
-        val hotelPrice: TextView = itemView.findViewById(R.id.priceHotel)
-        val hotelImage: ImageView = itemView.findViewById(R.id.imageHotel)
+        private val nameTextView: TextView = itemView.findViewById(R.id.name_hotel)
+        private val priceTextView: TextView = itemView.findViewById(R.id.priceHotel)
+
+        // Fungsi untuk mengikat data dari ModelDatabase ke tampilan ViewHolder
+        fun bind(modelDatabase: ModelDatabase) {
+            nameTextView.text = modelDatabase.name
+            priceTextView.text = modelDatabase.hargaHotel.toString()
+        }
     }
 }

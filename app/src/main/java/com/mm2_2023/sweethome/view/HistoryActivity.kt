@@ -8,8 +8,11 @@ import android.os.PersistableBundle
 import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
+import android.widget.TextView
 import android.widget.Toast
+
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,23 +22,28 @@ import com.mm2_2023.sweethome.adapter.HistoryAdapter
 import com.mm2_2023.sweethome.databinding.ActivityHistoryBinding
 import com.mm2_2023.sweethome.model.ModelDatabase
 import com.mm2_2023.sweethome.viewmodel.HistoryViewModel
-import kotlinx.android.synthetic.main.activity_history.*
+
 
 class HistoryActivity : AppCompatActivity() {
-    var modelDatabaseList : MutableList<ModelDatabase> = ArrayList()
+    // Deklarasi variabel
+    var hotelList: MutableList<ModelDatabase> = mutableListOf() // Ubah ke mutableListOf()
     lateinit var historyAdapter: HistoryAdapter
     lateinit var historyViewModel: HistoryViewModel
+    lateinit var rvHistory: RecyclerView // Deklarasikan variabelnya
+    lateinit var tvNotFound: TextView // Deklarasikan variabelnya
+    lateinit var toolbar: Toolbar // Deklarasikan variabelnya
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_history)
         setStatusBar()
-        setToolBar()
+        setToolbar()
         setInitLayout()
         setViewModel()
         setUpItemTouchHelper()
     }
 
+    // Mengatur Toolbar sebagai ActionBar
     private fun setToolbar() {
         setSupportActionBar(toolbar)
         if (supportActionBar != null) {
@@ -44,27 +52,24 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
+    // Mengatur tampilan awal untuk RecyclerView dan Adapter
     private fun setInitLayout() {
-        historyAdapter = HistoryAdapter(modelDatabaseList)
+        historyAdapter = HistoryAdapter(hotelList)
+        rvHistory = findViewById(R.id.rvHistory) // Tambahkan baris ini untuk menginisialisasi rvHistory
         rvHistory.setHasFixedSize(true)
-        rvHistory.setLayoutManager(LinearLayoutManager(this))
-        rvHistory.setAdapter(historyAdapter)
+        rvHistory.layoutManager = LinearLayoutManager(this)
+        rvHistory.adapter = historyAdapter
     }
 
+    // Mendapatkan ViewModel dan inisialisasi data dari ViewModel
     private fun setViewModel() {
         historyViewModel = ViewModelProviders.of(this).get(HistoryViewModel::class.java)
-        historyViewModel.dataList.observe(this, { modelDatabases: List<ModelDatabase> ->
-            if (modelDatabases.isEmpty()) {
-                tvNotFound.visibility = View.VISIBLE
-                rvHistory.visibility = View.GONE
-            } else {
-                tvNotFound.visibility = View.GONE
-                rvHistory.visibility = View.VISIBLE
-            }
-            historyAdapter.setDataAdapter(modelDatabases)
-        })
+        hotelList =
+            historyViewModel.hotelList as MutableList<ModelDatabase> // Ambil hotelList dari ViewModel
+        historyAdapter.setDataAdapter(hotelList)
     }
 
+    // Mengatur ItemTouchHelper untuk menangani penggeseran item di RecyclerView
     private fun setUpItemTouchHelper() {
         val simpleCallback: ItemTouchHelper.SimpleCallback = object :
             ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.START or ItemTouchHelper.END) {
@@ -92,6 +97,7 @@ class HistoryActivity : AppCompatActivity() {
         itemTouchHelper.attachToRecyclerView(rvHistory)
     }
 
+    // Mengatur status bar dengan warna transparan dan teks status bar berwarna hitam (hanya untuk API >= 23)
     private fun setStatusBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             window.decorView.systemUiVisibility =
@@ -103,6 +109,7 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
+    // Mengatur aksi ketika tombol kembali di ActionBar ditekan
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
             finish()
@@ -112,6 +119,7 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     companion object {
+        // Fungsi untuk mengatur status flag di window
         fun setWindowFlag(activity: Activity, bits: Int, on: Boolean) {
             val window = activity.window
             val layoutParams = window.attributes

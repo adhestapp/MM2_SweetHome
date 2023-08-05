@@ -1,43 +1,34 @@
 package com.mm2_2023.sweethome.model
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import java.io.Serializable
-
 
 @Entity(tableName = "tbl_hotel")
-class ModelDatabase : Serializable {
-
+class ModelDatabase(
     @PrimaryKey(autoGenerate = true)
-    @ColumnInfo(name = "uid")
-    var uid = 0
+    var uid: Int = 0, // Kunci utama untuk data di tabel, di-generate secara otomatis saat data ditambahkan ke database
 
-    @ColumnInfo(name = "nama_tamu")
-    lateinit var namaTamu: String
+    var namaTamu: String = "", // Nama tamu yang memesan hotel
 
-    @ColumnInfo(name = "check_in")
-    lateinit var checkIn: String
+    var checkIn: String = "", // Tanggal check-in tamu
 
-    @ColumnInfo(name = "check_out")
-    lateinit var checkOut: String
+    var checkOut: String = "", // Tanggal check-out tamu
 
-    @ColumnInfo(name = "harga_hotel")
-    var hargaHotel = 0
+    var nomorTelepon: String = "", // Nomor telepon tamu
 
-    @ColumnInfo(name = "anak_anak")
-    var anakAnak = 0
+    var anakAnak: Int = 0, // Jumlah anak-anak yang ikut menginap
 
-    @ColumnInfo(name = "dewasa")
-    var dewasa = 0
+    var dewasa: Int = 0, // Jumlah dewasa yang ikut menginap
 
-    @ColumnInfo(name = "nomor_telepon")
-    lateinit var nomorTelepon: String
+    var hargaHotel: Int = 0, // Harga kamar hotel per malam
 
-    @ColumnInfo(name = "kelas")
-    lateinit var kelas: String
+    var kelas: String = "", // Kelas kamar hotel (contoh: Standard, Deluxe, Suite, dsb)
 
-    @ColumnInfo(name = "status")
-    lateinit var status: String
+    var status: String = "", // Status pesanan (contoh: Booked, Check-in, Check-out, Cancelled, dsb)
 
-}
+    var description: String = "", // Deskripsi hotel (contoh: fasilitas, layanan, dsb)
+
+    var location: String = "", // Lokasi hotel (contoh: alamat, kota, negara, dsb)
+
+    var name: String = "" // Nama hotel
+)

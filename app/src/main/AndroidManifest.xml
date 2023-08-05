@@ -14,12 +14,7 @@
         <activity
             android:name=".SplashScreenActivity"
             android:exported="false" />
-        <activity
-            android:name=".InputDataActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HomeAcivity"
-            android:exported="false" />
+
         <activity
             android:name=".view.ProfileActivity"
             android:exported="false" />
@@ -33,7 +28,7 @@
             android:name=".view.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".view.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
